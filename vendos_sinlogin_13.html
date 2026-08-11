@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vendos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#131519; --panel:#1B1E25; --panel2:#22262F; --line:#2E333E;
+  --ink:#E9E7E2; --muted:#8A919F; --dim:#5C6472;
+  --amber:#F0A83C; --amber-dim:#7A5518;
+  --green:#6BBF8A; --red:#E0685A; --blue:#6FA8D6;
+  --r:10px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:15px;line-height:1.45;padding-bottom:40px}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-.01em;margin:0}
+
+header{position:sticky;top:0;z-index:20;background:rgba(19,21,25,.94);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:10px;padding:12px 14px 8px}
+.logo{font-family:'Space Grotesk';font-weight:700;font-size:19px;letter-spacing:-.02em}
+.logo span{color:var(--amber)}
+.machine{margin-left:auto;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.09em;text-align:right}
+nav{display:flex;gap:2px;overflow-x:auto;padding:0 8px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:0;color:var(--muted);font-family:inherit;font-size:13px;font-weight:500;
+  padding:9px 12px 10px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--amber)}
+main{padding:16px 14px;max-width:820px;margin:0 auto}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.eyebrow{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+input,select,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  color:var(--ink);padding:10px 11px;font-family:'IBM Plex Mono',monospace;font-size:15px}
+input:focus,select:focus{outline:2px solid var(--amber-dim);border-color:var(--amber)}
+select{font-family:'IBM Plex Sans',sans-serif}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}
+button.act{width:100%;background:var(--amber);color:#1A1206;border:0;border-radius:8px;padding:12px;
+  font-family:'Space Grotesk';font-weight:700;font-size:15px;cursor:pointer;margin-top:12px}
+button.act:active{transform:translateY(1px)}
+button.act:disabled{opacity:.5}
+button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.45}
+.warn{border-left:3px solid var(--amber);background:#221B0E;padding:10px 12px;border-radius:6px;
+  font-size:12.5px;color:#E4CFA6;margin-bottom:12px}
+.err{border-left-color:var(--red);background:#2A1A17;color:#E9A296}
+.tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--muted)}
+.tag.bad{background:#3A211C;color:#E9A296}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+
+.mgwrap{overflow-x:auto;margin:0 -4px;padding:0 4px;scrollbar-width:thin}
+.mgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;min-width:600px}
+.slot{aspect-ratio:.72;border-radius:5px;background:var(--panel2);border:1px solid var(--line);
+  display:flex;flex-direction:column;padding:4px 2px;cursor:pointer;overflow:hidden;gap:2px}
+.slot:active{border-color:var(--amber)}
+.slot .n{font-family:'IBM Plex Mono';font-size:9px;color:var(--dim);text-align:center;flex:none}
+.slot .lbl{font-size:9px;line-height:1.15;text-align:center;color:var(--muted);padding:0 1px;flex:1;
+  min-height:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.slot .st{font-family:'IBM Plex Mono';font-size:12px;font-weight:600;text-align:center;color:var(--green);flex:none}
+.slot.low .st{color:var(--amber)} .slot.out .st{color:var(--red)} .slot.out{opacity:.5}
+.slot.fixmode{border-style:dashed}
+.legend{display:flex;gap:12px;font-size:10.5px;color:var(--dim);margin-top:10px;flex-wrap:wrap}
+.seg{display:flex;gap:2px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:2px;flex:none}
+.seg button{background:none;border:0;color:var(--muted);font-family:'Space Grotesk';font-weight:600;
+  font-size:12px;padding:6px 11px;border-radius:6px;cursor:pointer}
+.seg button.active{background:var(--amber);color:#1A1206}
+input.minicat{width:64px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:2px 4px;
+  border-radius:4px;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+input.minicat:focus{color:var(--ink);outline:2px solid var(--amber-dim);border-color:var(--amber)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
+  font-weight:500;padding:0 0 7px;border-bottom:1px solid var(--line)}
+td{padding:8px 0;border-bottom:1px solid #23272F;vertical-align:middle}
+td.r,th.r{text-align:right}
+tr:last-child td{border-bottom:0}
+
+.pl{font-family:'IBM Plex Mono';font-size:14px}
+.pl div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #23272F}
+.pl div:last-child{border-bottom:0}
+.pl .lab{font-family:'IBM Plex Sans';color:var(--muted);font-size:13.5px}
+.pl .sub .lab{padding-left:12px;color:var(--dim)}
+.pl .tot{border-top:1px solid var(--line)}
+.pl .tot .lab{color:var(--ink);font-weight:600}
+.pl .big{font-size:21px;font-weight:600}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.kpi .v{font-family:'IBM Plex Mono';font-size:22px;font-weight:600;letter-spacing:-.02em}
+.kpi .k{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.pos{color:var(--green)}.neg{color:var(--red)}.amb{color:var(--amber)}
+
+.scrim{position:fixed;inset:0;background:rgba(8,9,12,.72);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px 14px 0 0;width:100%;
+  max-width:520px;padding:18px 16px 26px;max-height:88vh;overflow:auto}
+@media(min-width:560px){.scrim{align-items:center}.sheet{border-radius:14px}}
+.qty{display:flex;align-items:center;gap:12px;margin:14px 0}
+.qty button{width:52px;height:52px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);
+  color:var(--ink);font-size:24px;font-family:'IBM Plex Mono';cursor:pointer}
+.qty input{text-align:center;font-size:26px;font-weight:600;height:52px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--panel2);
+  border:1px solid var(--line);border-left:3px solid var(--green);padding:10px 14px;border-radius:8px;
+  font-size:13px;z-index:80;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:92vw}
+#toast button{background:none;border:0;color:var(--amber);font-family:inherit;font-size:13px;
+  font-weight:600;cursor:pointer;margin-left:10px;padding:0}
+.gate{max-width:380px;margin:60px auto;padding:0 16px}
+select.minicat{width:auto;max-width:118px;font-size:10.5px;padding:2px 4px;border-radius:4px;
+  background:var(--panel2);color:var(--muted);line-height:1.4}
+select.minicat:focus{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header id="hdr" style="display:none">
+  <div class="bar">
+    <div class="logo">VEN<span>DOS</span></div>
+    <div class="machine" id="hdrStat">—</div>
+  </div>
+  <nav id="tabs"></nav>
+</header>
+
+<main id="view"><div class="gate"><p class="hint">Cargando…</p></div></main>
+<div id="toast"></div>
+<div id="modal"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SB_URL='https://wadyuqksvsclvrcvszag.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndhZHl1cWtzdnNjbHZyY3ZzemFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1ODk5NjEsImV4cCI6MjEwMTE2NTk2MX0.hr2a-Ki9LPubcf6qzei8G8h4mIfI_GZO8-o1BA260pg';
+const sb=createClient(SB_URL,SB_KEY);
+
+/* ============================================================
+   El servidor guarda SOLO el libro de movimientos.
+   stock y costo promedio se DERIVAN al cargar (replay del libro).
+   Así dos dispositivos registran a la vez sin pisarse: cada uno
+   inserta una fila, ninguno sobrescribe un contador compartido.
+   ============================================================ */
+
+const SEED=[
+ ['dorada','Dorada Ice','Cerveza',4.5625,15,[1,2,3,4,5,6,7,8,9,10]],
+ ['cuto_jam','Quezalteca Indita Jamaica','Licor',9.00,20,[11,12,13]],
+ ['cuto_fre','Quezalteca Fresa','Licor',9.00,20,[14,15,16]],
+ ['cuto_nar','Quezalteca Naranja','Licor',9.00,20,[17,18]],
+ ['cuto_tam','Quezalteca Tamarindo','Licor',9.00,20,[19,20]],
+ ['corona','Corona','Cerveza',7.29,25,[21,22,23,24]],
+ ['gallo','Gallo','Cerveza',11.47,20,[25,26,27,28,29,30]],
+ ['cabro','Cabro Taconuda','Cerveza',10.00,25,[31,32,33,34,35,36]],
+ ['karma','KARMA','Bebida',4.79,15,[37,38,39,40]],
+ ['vape1600','Vape Chiquito 1,600 puffs','Vape',40.00,100,[41,42]],
+ ['vape6500','Vape Mediano 6,500 puffs','Vape',60.00,150,[43]],
+ ['vape8000','Vape Grande 8,000 puffs','Vape',65.00,200,[44]],
+ ['tabaco','Tabaco suelto en bolsa','Tabaco',20.00,50,[45]],
+ ['papos','Papos para forjar','Tabaco',8.00,25,[46]],
+ ['lm','Cigarros L&M Azul','Tabaco',10.00,20,[47]],
+ ['casino','Cigarros Casino','Tabaco',10.00,20,[48]],
+ ['bite','Snack Bite','Snack',13.58,35,[49,50]],
+ ['coca','Coca Cola','Bebida',4.50,15,[51]],
+ ['cocaz','Coca Zero','Bebida',3.60,15,[52]],
+ ['rbdiet','Red Bull Diet','Bebida',11.70,25,[53]],
+ ['rbgde','Red Bull Grande','Bebida',15.21,30,[54]],
+ ['salutaris','Salutaris','Bebida',4.75,10,[55]],
+ ['gatorlyte','Gatorlyte','Bebida',13.33,25,[56,57,58]],
+ ['agua300','Agua 300 ml','Bebida',1.10,10,[59,60]],
+ ['condon','Condones','Otros',10.00,20,[]],
+];
+const SHORT={dorada:'Dorada',cuto_jam:'Cuto Jamaica',cuto_fre:'Cuto Fresa',cuto_nar:'Cuto Naranja',
+ cuto_tam:'Cuto Tamar.',corona:'Corona',gallo:'Gallo',cabro:'Cabro',karma:'KARMA',vape8000:'Vape Gde',
+ vape6500:'Vape Med',vape1600:'Vape Chico',tabaco:'Tabaco',papos:'Papos',lm:'L&M',casino:'Casino',bite:'Bite',coca:'Coca',
+ cocaz:'Coca Zero',rbdiet:'RB Diet',rbgde:'RB Gde',salutaris:'Salutaris',gatorlyte:'Gatorlyte',
+ agua300:'Agua',condon:'Condones'};
+const GASTO_CATS=['Electricidad','Transporte','Mantenimiento','Otros'];
+const QKEY='vendos_cola';
+
+let S={products:[],movements:[],cats:[],settings:{commissionPct:20}};
+let tab='maquina', plMonth=null, maquinaMode='vender';
+
+const Q=n=>'Q'+(n||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+const Q0=n=>'Q'+Math.round(n||0).toLocaleString('es-GT');
+const P=id=>S.products.find(p=>p.id===id);
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)}));
+const ym=d=>d.slice(0,7);
+const today=()=>new Date().toISOString().slice(0,10);
+const el=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const monthName=m=>['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][+m.split('-')[1]-1]+' '+m.split('-')[0];
+
+const cola={
+  get(){try{return JSON.parse(localStorage.getItem(QKEY))||[]}catch(e){return[]}},
+  set(v){try{localStorage.setItem(QKEY,JSON.stringify(v))}catch(e){}},
+  add(m){const q=this.get();q.push(m);this.set(q)},
+  del(id){this.set(this.get().filter(x=>x.id!==id))}
+};
+
+/* ---------- DERIVACIÓN: el corazón ---------- */
+function derive(){
+  S.products.forEach(p=>{p.stock=0;p.avgCost=p.seedCost??null});
+  const ms=[...S.movements].sort((a,b)=>
+    a.date<b.date?-1:a.date>b.date?1:((a.created_at||'')<(b.created_at||'')?-1:1));
+  ms.forEach(m=>{
+    if(!m.pid)return; const p=P(m.pid); if(!p)return;
+    if(m.type==='PURCHASE'){
+      const tot=p.stock+m.units;
+      // el promedio ponderado solo cambia al comprar
+      p.avgCost = tot>0 ? ((p.stock*(p.avgCost||0))+(m.units*m.unitCost))/tot : m.unitCost;
+      p.stock=tot;
+    } else if(m.type==='ADJUST'){
+      // si trae casilla: es una RECOLOCACIÓN entre bodega y esa casilla (no toca el total,
+      // esas unidades ya estaban contadas). Sin casilla: corrección real del total general.
+      // (La base de datos de Supabase solo permite estos 5 tipos de movimiento — por eso
+      // la recolocación por casilla también usa ADJUST en vez de un tipo nuevo tipo LOAD.)
+      if(m.slot==null) p.stock+=m.units;
+    } else if(m.type==='LOAD'){
+      // tipo heredado (ya no se genera): igual que ADJUST-con-casilla, no toca el total
+    } else p.stock-=m.units;     // SALE y WRITEOFF
+  });
+  deriveSlots(ms);
+}
+
+/* ---------- casillas físicas / bodega ----------
+   Compra y Merma son por producto (van al "total"); Venta, Corrección y
+   Carga pueden traer `slot`. El contador de cada casilla arranca en 0 y
+   solo se mueve con movimientos que traigan esa casilla — así la diferencia
+   entre el total del producto y la suma de sus casillas es "bodega":
+   mercancía comprada que todavía no se cargó físicamente a la máquina.
+   LOAD (Cargar a máquina, desde Bodega) sube la casilla sin subir el total,
+   porque esas unidades ya estaban contadas en el total al comprarlas.     */
+function deriveSlots(ms){
+  S.products.forEach(p=>{p.slotStock={}; p.slots.forEach(s=>p.slotStock[s]=0)});
+  ms.forEach(m=>{
+    if(!m.pid||m.slot==null)return; const p=P(m.pid); if(!p||!(m.slot in p.slotStock))return;
+    if(m.type==='ADJUST'||m.type==='LOAD') p.slotStock[m.slot]+=m.units;
+    else if(m.type==='SALE') p.slotStock[m.slot]-=m.units;
+  });
+}
+
+/* ---------- escritura ----------
+   La casilla NO usa una columna nueva en Supabase (no hace falta tocar la base de
+   datos): se guarda codificada al inicio de la nota, como "[[slot 41]] texto real",
+   y se decodifica sola al cargar. Así todo funciona sobre las columnas que ya existen. */
+function toRow(m){
+  const note = m.slot!=null ? `[[slot ${m.slot}]] ${m.note||''}`.trim() : (m.note||null);
+  return{id:m.id,date:m.date,type:m.type,pid:m.pid??null,units:m.units??null,
+  unit_cost:m.unitCost??null,unit_price:m.unitPrice??null,cat:m.cat??null,
+  amount:m.amount??null,note}
+}
+function parseSlotNote(raw){
+  if(!raw) return {slot:null, note:raw};
+  const m=raw.match(/^\[\[slot (\d+)\]\] ?(.*)$/s);
+  return m ? {slot:+m[1], note:m[2]||null} : {slot:null, note:raw};
+}
+
+async function push(mv){
+  S.movements.push(mv); derive(); render();
+  const {error}=await sb.from('movements').insert(toRow(mv));
+  if(error){cola.add(mv);setSync()}
+  return mv.id;
+}
+async function flush(){
+  for(const mv of cola.get()){
+    const {error}=await sb.from('movements').insert(toRow(mv));
+    if(error) break;
+    cola.del(mv.id);
+  }
+  setSync();
+}
+const purchase=(pid,u,c,d,n)=>push({id:uid(),date:d,type:'PURCHASE',pid,units:u,unitCost:c,note:n,created_at:new Date().toISOString()});
+// el costo se CONGELA al vender: un restock futuro no reescribe la utilidad de hoy
+// slot: casilla física de donde sale la venta (opcional; solo aplica a productos con casillas)
+const sell=(pid,u,d,n,slot)=>push({id:uid(),date:d,type:'SALE',pid,units:u,unitCost:P(pid).avgCost||0,unitPrice:P(pid).price,note:n,slot:slot??null,created_at:new Date().toISOString()});
+const merma=(pid,u,d,n)=>push({id:uid(),date:d,type:'WRITEOFF',pid,units:u,unitCost:P(pid).avgCost||0,note:n,created_at:new Date().toISOString()});
+// ADJUST: corrige el contador sin tocar ingresos ni COGS. units puede ser negativo.
+// slot: si viene, corrige esa casilla puntual; si no, corrige el total general del producto.
+const ajuste=(pid,delta,d,n,slot)=>push({id:uid(),date:d,type:'ADJUST',pid,units:delta,unitCost:P(pid).avgCost||0,note:n,slot:slot??null,created_at:new Date().toISOString()});
+// LOAD: mueve unidades de Bodega a una casilla. No toca el total ni el P&L, solo dónde están.
+const cargar=(pid,u,d,slot,n)=>push({id:uid(),date:d,type:'ADJUST',pid,units:u,unitCost:P(pid).avgCost||0,note:n,slot,created_at:new Date().toISOString()});
+const gasto=(cat,a,d,n)=>push({id:uid(),date:d,type:'EXPENSE',cat,amount:a,note:n,created_at:new Date().toISOString()});
+
+async function undo(mid){
+  S.movements=S.movements.filter(m=>m.id!==mid); cola.del(mid); derive(); render();
+  await sb.from('movements').delete().eq('id',mid);
+}
+
+/* ---------- categorías de producto ----------
+   La lista es la UNIÓN de la tabla `categories` y los cat que ya traen
+   los productos. Si un rename se corta a media conexión, la categoría
+   vieja sigue viva mientras tenga productos: nunca queda un huérfano
+   invisible. Y si todavía no corriste el SQL, la app funciona igual
+   en modo solo-lectura derivado.                                      */
+function catList(){
+  const s=new Set(S.cats);
+  S.products.forEach(p=>{if(p.cat)s.add(p.cat)});
+  return [...s].sort((a,b)=>a.localeCompare(b,'es'));
+}
+const catCount=c=>S.products.filter(p=>p.cat===c).length;
+const catDup=(n,except)=>catList().some(c=>c!==except&&c.toLowerCase()===n.toLowerCase());
+
+async function catAdd(name){
+  name=(name||'').trim().slice(0,32);
+  if(!name) return toast('Escribí un nombre');
+  if(catDup(name)) return toast(`"${name}" ya existe`);
+  S.cats.push(name); render();
+  const {error}=await sb.from('categories').insert({name});
+  if(error) toast('Guardada local — no subió a la nube');
+  else toast(`Categoría "${name}" agregada`);
+}
+
+async function catRename(oldN,newN){
+  newN=(newN||'').trim().slice(0,32);
+  if(!newN||newN===oldN) return;
+  if(catDup(newN,oldN)) return toast(`"${newN}" ya existe`);
+  const n=catCount(oldN);
+  S.cats=S.cats.filter(c=>c!==oldN); S.cats.push(newN);
+  S.products.forEach(p=>{if(p.cat===oldN)p.cat=newN});
+  render(); toast(`${oldN} → ${newN}${n?` · ${n} producto${n===1?'':'s'}`:''}`);
+  await sb.from('categories').insert({name:newN});
+  if(n) await sb.from('products').update({cat:newN}).eq('cat',oldN);
+  await sb.from('categories').delete().eq('name',oldN);
+}
+
+async function catDelete(name,moveTo){
+  const n=catCount(name);
+  if(n&&!moveTo) return toast('Falta a dónde mandar los productos');
+  S.cats=S.cats.filter(c=>c!==name);
+  if(n) S.products.forEach(p=>{if(p.cat===name)p.cat=moveTo});
+  render(); toast(n?`"${name}" eliminada · ${n} → ${moveTo}`:`"${name}" eliminada`);
+  if(n) await sb.from('products').update({cat:moveTo}).eq('cat',name);
+  await sb.from('categories').delete().eq('name',name);
+}
+
+async function setProdCat(pid,cat){
+  const p=P(pid); if(!p||p.cat===cat) return;
+  p.cat=cat; render();
+  const {error}=await sb.from('products').update({cat}).eq('id',pid);
+  if(error) toast('No se pudo guardar el cambio');
+}
+
+/* Casillas: separadas por coma, 1-60, sin repetir dentro del mismo producto y sin
+   pisar casillas que ya usa otro producto (si hay choque, se avisa y no se guarda). */
+async function setProdSlots(pid,raw){
+  const p=P(pid); if(!p) return;
+  const nums=[...new Set(raw.split(',').map(s=>s.trim()).filter(Boolean).map(Number))]
+    .filter(n=>Number.isInteger(n)&&n>=1&&n<=60).sort((a,b)=>a-b);
+  const taken={};
+  S.products.forEach(o=>{if(o.id!==pid)o.slots.forEach(s=>taken[s]=o.name)});
+  const conflict=nums.find(n=>taken[n]);
+  if(conflict){ toast(`La casilla ${conflict} ya la usa ${taken[conflict]}`); render(); return; }
+  const before=p.slots.join(',');
+  p.slots=nums; render();
+  const {error}=await sb.from('products').update({slots:nums}).eq('id',pid);
+  if(error){ toast('No se pudo guardar el cambio'); return; }
+  toast(nums.length?`${p.name}: casillas ${nums.join(',')}`:`${p.name}: sin casilla (en standby, disponible en Bodega)`);
+}
+
+/* ---------- P&L ---------- */
+function pnl(month){
+  let rev=0,cogs=0,mer=0,gas=0,adj=0; const byProd={};
+  S.movements.filter(m=>ym(m.date)===month).forEach(m=>{
+    if(m.type==='SALE'){
+      const r=m.units*m.unitPrice,c=m.units*m.unitCost; rev+=r; cogs+=c;
+      const b=byProd[m.pid]||(byProd[m.pid]={u:0,r:0,c:0}); b.u+=m.units;b.r+=r;b.c+=c;
+    } else if(m.type==='WRITEOFF') mer+=m.units*m.unitCost;
+    else if(m.type==='ADJUST') adj+=m.units*(m.unitCost||0);
+    else if(m.type==='EXPENSE') gas+=m.amount;
+  });
+  const opProfit=rev-cogs-mer-gas;
+  const pct=(S.settings.commissionPct||0)/100;
+  const comision=Math.max(0,opProfit*pct);   // nunca negativa
+  return {rev,cogs,gross:rev-cogs,merma:mer,gastos:gas,adj,opProfit,comision,pct,net:opProfit-comision,byProd};
+}
+const invValue=()=>S.products.reduce((s,p)=>s+p.stock*(p.avgCost||0),0);
+const months=()=>{const s=new Set(S.movements.map(m=>ym(m.date)));s.add(ym(today()));return[...s].sort().reverse()};
+
+let tT;
+function toast(msg,undoId){
+  const t=el('toast');
+  t.innerHTML=esc(msg)+(undoId?`<button data-u="${undoId}">Deshacer</button>`:'');
+  const b=t.querySelector('button');
+  if(b)b.onclick=()=>{undo(b.dataset.u);t.style.display='none'};
+  t.style.display='block'; clearTimeout(tT); tT=setTimeout(()=>t.style.display='none',4200);
+}
+const closeModal=()=>el('modal').innerHTML='';
+function setSync(){
+  const n=cola.get().length;
+  el('hdrStat').innerHTML=n
+    ? `<span class="dot" style="background:var(--amber)"></span>${n} sin subir`
+    : `Inventario ${Q0(invValue())} · Utilidad ${Q0(pnl(plMonth||ym(today())).net)}`;
+}
+
+
+/* ---------- carga ---------- */
+async function load(){
+  const [pr,mv,st,ct]=await Promise.all([
+    sb.from('products').select('*'),
+    sb.from('movements').select('*'),
+    sb.from('settings').select('*').maybeSingle(),
+    sb.from('categories').select('*')
+  ]);
+  if(pr.error) throw pr.error;
+  if(mv.error) throw mv.error;
+  // si `categories` todavía no existe, seguimos con las derivadas de products
+  S.cats=ct.error?[]:(ct.data||[]).map(r=>r.name).filter(Boolean);
+
+  if(!pr.data.length){                       // primera vez: sembrar catálogo
+    const rows=SEED.map(([id,name,cat,cost,price,slots])=>({id,name,cat,price,seed_cost:cost,slots}));
+    const {error}=await sb.from('products').insert(rows); if(error) throw error;
+    S.products=rows.map(r=>({id:r.id,name:r.name,cat:r.cat,price:+r.price,
+      seedCost:r.seed_cost,slots:r.slots,stock:0,avgCost:r.seed_cost}));
+  } else {
+    S.products=pr.data.map(r=>({id:r.id,name:r.name,cat:r.cat,price:+r.price,
+      seedCost:r.seed_cost==null?null:+r.seed_cost,slots:r.slots||[],stock:0,avgCost:null}));
+  }
+  S.movements=(mv.data||[]).map(r=>{
+    const {slot,note}=parseSlotNote(r.note);
+    return {id:r.id,date:r.date,type:r.type,pid:r.pid,
+    units:r.units==null?null:+r.units,unitCost:r.unit_cost==null?null:+r.unit_cost,
+    unitPrice:r.unit_price==null?null:+r.unit_price,cat:r.cat,
+    amount:r.amount==null?null:+r.amount,note,
+    slot,created_at:r.created_at};
+  });
+  cola.get().forEach(m=>{if(!S.movements.find(x=>x.id===m.id))S.movements.push(m)});
+
+  if(st.data) S.settings.commissionPct=+st.data.commission_pct;
+  else await sb.from('settings').insert({id:1,commission_pct:20});
+  derive();
+}
+
+/* ---------- vistas ---------- */
+const TABS=[['maquina','Máquina'],['restock','Restock'],['bodega','Bodega'],['inventario','Inventario'],
+            ['gastos','Gastos'],['pl','P&L'],['productos','Productos'],['libro','Libro']];
+
+function render(){
+  el('hdr').style.display='';
+  el('tabs').innerHTML=TABS.map(([k,l])=>`<button aria-selected="${k===tab}" data-t="${k}">${l}</button>`).join('');
+  el('tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;maquinaMode='vender';render()});
+  el('view').innerHTML=({maquina:vMaquina,conteo:vConteo,restock:vRestock,bodega:vBodega,inventario:vInv,
+    gastos:vGastos,pl:vPL,productos:vProd,libro:vLibro})[tab]();
+  wire(); setSync();
+}
+
+function vMaquina(){
+  const fix=maquinaMode==='fix';
+  const slots={}; S.products.forEach(p=>p.slots.forEach(s=>slots[s]=p));
+  let g='';
+  for(let i=1;i<=60;i++){
+    const p=slots[i];
+    if(!p){g+=`<div class="slot out"><div class="n">${i}</div><div class="lbl">—</div><div class="st">·</div></div>`;continue}
+    const n=p.slotStock[i]??0;
+    const cls=n<=0?'out':n<=2?'low':'';
+    g+=`<div class="slot ${cls}${fix?' fixmode':''}" title="${esc(p.name)}" data-sell="${p.id}" data-slot="${i}">
+      <div class="n">${i}</div><div class="lbl">${esc(SHORT[p.id]||p.name)}</div><div class="st">${n}</div></div>`;
+  }
+  const nc=S.products.filter(p=>p.avgCost==null||p.avgCost===0);
+  return `${nc.length?`<div class="warn"><b>${nc.length} sin costo.</b> Se venden con COGS de Q0 e inflan la utilidad: ${nc.map(p=>esc(p.name)).join(', ')}.</div>`:''}
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+      <div class="eyebrow" style="margin:0">${fix?'Toca un espacio para corregir la cantidad':'Toca un espacio para registrar venta'}</div>
+      <div class="seg">
+        <button data-mmode="vender" class="${fix?'':'active'}">Vender</button>
+        <button data-mmode="fix" class="${fix?'active':''}">Corregir</button>
+      </div>
+    </div>
+    ${fix?'<p class="hint" style="margin:0 0 10px">Decís qué hay en cada casilla: mueve unidades entre Bodega y la casilla, sin tocar el total general ni el P&L.</p>':''}
+    <div class="mgwrap"><div class="mgrid">${g}</div></div>
+    <div class="legend"><span style="color:var(--green)">■ con stock</span>
+      <span style="color:var(--amber)">■ 2 o menos</span><span style="color:var(--red)">■ agotado</span></div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Modo conteo</div>
+    <p class="hint" style="margin-top:0">Anotá lo que <b>queda</b> en cada espacio y Vendos deriva lo vendido. Es la forma que nunca se atrasa.</p>
+    <button class="act ghost" data-go="conteo">Hacer conteo</button>
+  </div>`;
+}
+
+function vConteo(){
+  const slots={}; S.products.forEach(p=>p.slots.forEach(s=>slots[s]=p));
+  const rows=[]; for(let i=1;i<=60;i++){ if(slots[i]) rows.push(i); }
+  return `<div class="card">
+    <div class="eyebrow">Conteo físico — ${today()}</div>
+    <table><thead><tr><th>Casilla</th><th class="r">Sistema</th><th class="r">Quedan</th></tr></thead><tbody>
+    ${rows.map(i=>{const p=slots[i],n=p.slotStock[i]??0;
+      return `<tr><td>${i} · ${esc(SHORT[p.id]||p.name)}</td>
+      <td class="r num" style="color:var(--dim)">${n}</td>
+      <td style="width:88px"><input class="num" id="cnt_${i}" type="number" min="0" placeholder="${n}"></td></tr>`}).join('')}
+    </tbody></table>
+    <p class="hint">Dejá en blanco lo que no contaste.</p>
+    <label style="margin-top:12px">Las diferencias son…</label>
+    <select id="cntMode">
+      <option value="SALE">Ventas (lo normal)</option>
+      <option value="ADJUST">Correcciones — no toca el P&L ni el total</option>
+    </select>
+    <button class="act" id="btnCnt">Registrar ventas del conteo</button>
+    <button class="act ghost" data-go="maquina">Cancelar</button></div>`;
+}
+async function applyConteo(){
+  const slots={}; S.products.forEach(p=>p.slots.forEach(s=>slots[s]=p));
+  const acc=[];
+  for(let i=1;i<=60;i++){
+    const p=slots[i]; if(!p) continue;
+    const v=el('cnt_'+i).value; if(v==='')continue;
+    const n=p.slotStock[i]??0, d=n-(+v); if(d!==0) acc.push([i,p.id,d]);
+  }
+  const modo=el('cntMode').value;
+  let u=0;
+  for(const [slot,pid,d] of acc){
+    if(modo==='ADJUST'){ await cargar(pid,-d,today(),slot,'conteo'); }
+    else if(d>0){ await sell(pid,d,today(),'conteo',slot); u+=d; }
+    else { await cargar(pid,-d,today(),slot,'sobrante de conteo'); }
+  }
+  tab='maquina'; render();
+  toast(modo==='ADJUST'?`${acc.length} casillas corregidas`:`${u} unidades vendidas en ${acc.length} casillas`);
+}
+
+function vRestock(){
+  const opts=S.products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  return `<div class="card">
+    <div class="eyebrow">Entrada de producto</div>
+    <p class="hint" style="margin-top:0;margin-bottom:12px">Comprar producto <b>no es gasto</b>: convierte banco en inventario. Se vuelve costo solo al venderse.</p>
+    <label>Producto</label><select id="rp">${opts}</select>
+    <div class="row" style="margin-top:10px">
+      <div><label>Unidades</label><input class="num" id="ru" type="number" min="1" placeholder="24"></div>
+      <div><label>Costo por unidad</label><input class="num" id="rc" type="number" step="0.01" value="${S.products[0]?.avgCost??''}"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div><label>Fecha</label><input id="rd" type="date" value="${today()}"></div>
+      <div><label>Nota</label><input id="rn" placeholder="proveedor"></div>
+    </div>
+    <button class="act" id="btnBuy">Agregar al inventario</button>
+    <p class="hint">El costo se llena solo. Cambialo únicamente si esta compra vino a otro precio.</p>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Merma / vencido / robo / prueba</div>
+    <p class="hint" style="margin-top:0;margin-bottom:12px">Sale del inventario pero <b>no</b> del COGS, para no ensuciar el margen del producto.</p>
+    <label>Producto</label><select id="wp">${opts}</select>
+    <div class="row" style="margin-top:10px">
+      <div><label>Unidades</label><input class="num" id="wu" type="number" min="1"></div>
+      <div><label>Motivo</label><input id="wn" placeholder="vencido"></div>
+    </div>
+    <button class="act ghost" id="btnW">Dar de baja</button>
+  </div>`;
+}
+
+function vBodega(){
+  const list=S.products.map(p=>{
+    const enMaquina=p.slots.reduce((s,sl)=>s+(p.slotStock[sl]??0),0);
+    const enBodega=Math.round((p.stock-enMaquina)*100)/100;
+    return {p,enMaquina,enBodega};
+  }).filter(r=>r.enBodega>0).sort((a,b)=>b.enBodega-a.enBodega);
+  const totU=list.reduce((s,r)=>s+r.enBodega,0);
+  const totV=list.reduce((s,r)=>s+r.enBodega*(r.p.avgCost||0),0);
+  return `<div class="kpis">
+    <div class="kpi"><div class="v amb">${totU}</div><div class="k">Unidades en bodega</div></div>
+    <div class="kpi"><div class="v">${Q0(totV)}</div><div class="k">Valor en bodega</div></div>
+  </div>
+  <div class="card"><div class="eyebrow">Lo que compraste y todavía no está en la máquina</div>
+  ${list.length?`<table><thead><tr><th>Producto</th><th class="r">En bodega</th><th class="r">En máquina</th><th></th></tr></thead><tbody>
+    ${list.map(r=>`<tr><td>${esc(r.p.name)}${r.p.slots.length?'':' <span class="tag bad">sin casilla — asignale una en Productos</span>'}</td>
+      <td class="r num amb">${r.enBodega}</td>
+      <td class="r num" style="color:var(--dim)">${r.enMaquina}</td>
+      <td class="r" style="width:96px">${r.p.slots.length?`<button class="act ghost" style="margin:0;padding:7px 10px;font-size:12px" data-cargar="${r.p.id}">Cargar</button>`:''}</td></tr>`).join('')}
+    </tbody></table>`:'<p class="hint" style="margin-top:0">Todo lo que compraste ya está cargado en alguna casilla.</p>'}
+    <p class="hint">Esto no es un problema ni una merma: es tu inventario de reserva. "Cargar" mueve unidades de acá a una casilla de la máquina sin tocar el total ni el P&L.</p></div>`;
+}
+
+function vInv(){
+  const ps=[...S.products].sort((a,b)=>b.stock*(b.avgCost||0)-a.stock*(a.avgCost||0));
+  const enMaquina=S.products.reduce((s,p)=>s+Object.values(p.slotStock||{}).reduce((a,b)=>a+b,0),0);
+  const sinCargar=S.products.reduce((s,p)=>s+p.stock,0)-enMaquina;
+  return `<div class="kpis">
+    <div class="kpi"><div class="v amb">${Q0(invValue())}</div><div class="k">Valor del inventario</div></div>
+    <div class="kpi"><div class="v">${enMaquina}</div><div class="k">Unidades en máquina</div></div></div>
+    ${sinCargar?`<p class="hint" style="margin:-4px 0 12px">${sinCargar} unidad${sinCargar===1?'':'es'} comprada${sinCargar===1?'':'s'} que todavía no cargaste a ninguna casilla (hacelo desde Máquina → Corregir, o con un conteo).</p>`:''}
+    <div class="card"><div class="eyebrow">Existencias al costo promedio</div>
+    <table><thead><tr><th>Producto</th><th class="r">Uds (total)</th><th class="r">Costo prom.</th><th class="r">Valor</th><th></th></tr></thead>
+    <tbody>${ps.map(p=>`<tr><td>${esc(p.name)}<br><span class="tag${p.cat?'':' bad'}">${p.cat?esc(p.cat):'sin categoría'}</span></td>
+      <td class="r num">${p.stock}</td>
+      <td class="r num" style="color:var(--muted)">${p.avgCost==null?'<span class="tag bad">—</span>':Q(p.avgCost)}</td>
+      <td class="r num">${Q(p.stock*(p.avgCost||0))}</td>
+      <td class="r" style="width:26px"><button data-fix="${p.id}" title="Corregir total general"
+        style="background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px">✎</button></td></tr>`).join('')}</tbody></table>
+    <p class="hint">El lápiz corrige el <b>total general</b> del producto (no una casilla) cuando el número está mal por un error de registro. No cuenta como venta ni como merma: no toca el P&L. Para corregir lo que hay en una casilla puntual de la máquina, hacelo desde Máquina → Corregir.</p></div>`;
+}
+
+function vGastos(){
+  const m=plMonth||ym(today());
+  const list=S.movements.filter(x=>x.type==='EXPENSE'&&ym(x.date)===m).reverse();
+  return `<div class="card"><div class="eyebrow">Nuevo gasto</div>
+    <label>Categoría</label><select id="gc">${GASTO_CATS.map(c=>`<option>${c}</option>`).join('')}</select>
+    <div class="row" style="margin-top:10px">
+      <div><label>Monto</label><input class="num" id="ga" type="number" step="0.01" placeholder="0.00"></div>
+      <div><label>Fecha</label><input id="gd" type="date" value="${today()}"></div></div>
+    <label style="margin-top:10px">Nota</label><input id="gn" placeholder="opcional">
+    <button class="act" id="btnG">Registrar gasto</button>
+    <p class="hint">La comisión del local no va acá: se calcula sola en el P&L.</p></div>
+  <div class="card"><div class="eyebrow">${monthName(m)}</div>
+    ${list.length?`<table><tbody>${list.map(x=>`<tr><td>${esc(x.cat)}<br><span class="tag">${x.date}${x.note?' · '+esc(x.note):''}</span></td>
+      <td class="r num neg">${Q(x.amount)}</td></tr>`).join('')}</tbody></table>`:'<p class="hint" style="margin-top:0">Sin gastos este mes.</p>'}</div>`;
+}
+
+function vPL(){
+  const m=plMonth||ym(today()), r=pnl(m), mg=r.rev?r.gross/r.rev*100:0;
+  const prods=Object.entries(r.byProd).sort((a,b)=>(b[1].r-b[1].c)-(a[1].r-a[1].c));
+  return `<div class="card" style="padding:10px 14px"><label style="margin:0 0 6px">Mes</label>
+    <select id="mSel">${months().map(x=>`<option value="${x}" ${x===m?'selected':''}>${monthName(x)}</option>`).join('')}</select></div>
+  <div class="kpis">
+    <div class="kpi"><div class="v ${r.net>=0?'pos':'neg'}">${Q0(r.net)}</div><div class="k">Utilidad neta</div></div>
+    <div class="kpi"><div class="v">${mg.toFixed(0)}%</div><div class="k">Margen bruto</div></div></div>
+  <div class="card"><div class="eyebrow">Estado de resultados</div><div class="pl">
+    <div><span class="lab">Ingresos</span><span>${Q(r.rev)}</span></div>
+    <div class="sub"><span class="lab">Costo de lo vendido</span><span class="neg">−${Q(r.cogs)}</span></div>
+    <div class="tot"><span class="lab">Utilidad bruta</span><span>${Q(r.gross)}</span></div>
+    <div class="sub"><span class="lab">Merma</span><span class="neg">−${Q(r.merma)}</span></div>
+    <div class="sub"><span class="lab">Gastos</span><span class="neg">−${Q(r.gastos)}</span></div>
+    <div class="tot"><span class="lab">Utilidad antes de comisión</span><span>${Q(r.opProfit)}</span></div>
+    <div class="sub"><span class="lab">Comisión del local (${(r.pct*100).toFixed(0)}%)</span><span class="neg">−${Q(r.comision)}</span></div>
+    <div class="tot"><span class="lab">Utilidad neta</span><span class="big ${r.net>=0?'pos':'neg'}">${Q(r.net)}</span></div>
+  </div></div>
+  <div class="card"><div class="eyebrow">Utilidad ≠ efectivo</div>
+    <div class="pl"><div><span class="lab">Inventario total (máquina + sin cargar)</span><span class="amb">${Q(invValue())}</span></div>
+    ${r.adj?`<div><span class="lab">Correcciones de conteo (informativo)</span><span style="color:var(--muted)">${r.adj>0?'+':''}${Q(r.adj)}</span></div>`:''}</div>
+    <p class="hint">Un mes con utilidad de ${Q0(r.net)} donde metiste producto nuevo deja menos en el banco. La diferencia está acá: sigue siendo tuya, solo cambió de forma.</p>
+    ${r.adj<-100?`<div class="warn" style="margin:10px 0 0">Llevás ${Q(Math.abs(r.adj))} en correcciones negativas este mes. Si el producto de verdad desapareció, eso es merma y debería bajarte la utilidad — corrigiéndolo acá queda escondido.</div>`:''}</div>
+  <div class="card"><div class="eyebrow">Qué deja cada producto</div>
+    ${prods.length?`<table><thead><tr><th>Producto</th><th class="r">Uds</th><th class="r">Ingreso</th><th class="r">Utilidad</th></tr></thead>
+    <tbody>${prods.map(([pid,b])=>`<tr><td>${esc(P(pid)?.name||pid)}</td><td class="r num">${b.u}</td>
+      <td class="r num">${Q0(b.r)}</td><td class="r num ${b.r-b.c>=0?'pos':'neg'}">${Q0(b.r-b.c)}</td></tr>`).join('')}</tbody></table>`
+    :'<p class="hint" style="margin-top:0">Sin ventas este mes todavía.</p>'}</div>`;
+}
+
+function vProd(){
+  return `<div class="card"><div class="eyebrow">Catálogo · precio y margen</div>
+    <table><thead><tr><th>Producto</th><th class="r">Costo</th><th>Precio</th><th class="r">Mg</th></tr></thead><tbody>
+    ${S.products.map(p=>{const c=p.avgCost,mg=(c!=null&&p.price)?((p.price-c)/p.price*100):null;
+      const opts=catList().map(x=>`<option ${x===p.cat?'selected':''}>${esc(x)}</option>`).join('');
+      return `<tr><td>${esc(p.name)}
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+        <select class="minicat" data-cat="${p.id}">
+          <option value="" ${p.cat?'':'selected'}>Sin categoría</option>${opts}</select>
+        <input class="minicat" data-slots="${p.id}" value="${esc(p.slots.join(','))}" placeholder="sin casilla" title="Casillas separadas por coma, ej: 41,42"></div></td>
+      <td class="r num" style="color:var(--muted);width:60px">${c==null?'—':Q(c)}</td>
+      <td style="width:66px"><input class="num" type="number" step="0.01" value="${p.price}" data-price="${p.id}"></td>
+      <td class="r num ${mg==null?'':mg<30?'neg':'pos'}" style="width:44px">${mg==null?'—':mg.toFixed(0)+'%'}</td></tr>`}).join('')}
+    </tbody></table>
+    <p class="hint">El costo ya no se edita a mano: sale del promedio ponderado de tus compras reales. Para corregirlo, registrá la compra en Restock. El campo de casillas cambia dónde aparece el producto en Máquina — dejalo vacío para sacarlo de la máquina sin borrar el producto (queda "en standby", disponible en Bodega).</p></div>
+  ${vCats()}
+  <div class="card"><div class="eyebrow">Comisión del local</div>
+    <label>Porcentaje sobre la utilidad</label>
+    <input class="num" type="number" step="0.5" min="0" max="100" value="${S.settings.commissionPct}" id="comPct">
+    <p class="hint">Se calcula sola sobre la utilidad antes de comisión. Si el mes cierra en pérdida, es cero.</p></div>
+  <div class="card"><div class="eyebrow">Datos</div>
+    <button class="act ghost" id="btnCsv">Exportar libro a CSV</button>
+    <p class="hint">Sin login. Cualquiera con esta URL puede ver y editar. Exportá el CSV seguido.</p></div>`;
+}
+
+function vCats(){
+  const cs=catList();
+  return `<div class="card"><div class="eyebrow">Categorías de producto</div>
+    ${cs.length?`<table><tbody>
+    ${cs.map(c=>{const n=catCount(c);
+      return `<tr><td>${esc(c)}<br><span class="tag${n?'':' bad'}">${n?n+' producto'+(n===1?'':'s'):'sin uso'}</span></td>
+      <td class="r" style="width:62px;white-space:nowrap">
+        <button data-cren="${esc(c)}" title="Renombrar" style="background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;padding:4px 5px">✎</button>
+        <button data-cdel="${esc(c)}" title="Eliminar" style="background:none;border:0;color:var(--dim);cursor:pointer;font-size:16px;padding:4px 5px">×</button></td></tr>`}).join('')}
+    </tbody></table>`:'<p class="hint" style="margin-top:0">Todavía no hay categorías.</p>'}
+    <div class="row" style="margin-top:12px;align-items:flex-end">
+      <div style="flex:1"><label>Nueva categoría</label><input id="ncat" maxlength="32" placeholder="Energizantes"></div>
+      <div style="flex:0 0 96px"><button class="act" id="btnCat" style="margin-top:0">Agregar</button></div>
+    </div>
+    <p class="hint">Renombrar arrastra a todos sus productos. Al eliminar una que tenga productos, Vendos te pregunta a dónde mandarlos: ningún producto queda colgado.</p></div>`;
+}
+
+function catRenModal(name){
+  el('modal').innerHTML=`<div class="scrim"><div class="sheet">
+    <div class="eyebrow">Renombrar categoría</div><h2 style="font-size:20px">${esc(name)}</h2>
+    <p class="hint" style="margin-top:4px">${catCount(name)} producto(s) se mueven con ella.</p>
+    <label style="margin-top:12px">Nombre nuevo</label>
+    <input id="crv" maxlength="32" value="${esc(name)}">
+    <button class="act" id="crok">Renombrar</button>
+    <button class="act ghost" id="crx">Cancelar</button></div></div>`;
+  const i=el('crv'); i.focus(); i.select();
+  el('crx').onclick=closeModal;
+  el('modal').querySelector('.scrim').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
+  i.onkeydown=e=>{if(e.key==='Enter')el('crok').click()};
+  el('crok').onclick=()=>{const v=i.value; closeModal(); catRename(name,v)};
+}
+
+function catDelModal(name){
+  const n=catCount(name), others=catList().filter(c=>c!==name);
+  if(!n){ if(confirm(`¿Eliminar la categoría "${name}"?`)) catDelete(name); return; }
+  if(!others.length) return toast('Creá otra categoría antes de eliminar esta');
+  el('modal').innerHTML=`<div class="scrim"><div class="sheet">
+    <div class="eyebrow">Eliminar categoría</div><h2 style="font-size:20px">${esc(name)}</h2>
+    <div class="warn" style="margin:12px 0">Tiene <b>${n} producto${n===1?'':'s'}</b>. Elegí a dónde van antes de borrarla.</div>
+    <label>Mover los productos a</label>
+    <select id="cdt">${others.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
+    <button class="act" id="cdok">Eliminar y mover</button>
+    <button class="act ghost" id="cdx">Cancelar</button></div></div>`;
+  el('cdx').onclick=closeModal;
+  el('modal').querySelector('.scrim').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
+  el('cdok').onclick=()=>{const to=el('cdt').value; closeModal(); catDelete(name,to)};
+}
+
+function vLibro(){
+  const ms=[...S.movements].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0).slice(0,200);
+  if(!ms.length)return `<div class="card"><p class="hint" style="margin-top:0">El libro está vacío. Todo lo que registres aparece acá, y de acá sale todo lo demás.</p></div>`;
+  const L={PURCHASE:'Compra',SALE:'Venta',WRITEOFF:'Merma',ADJUST:'Corrección',LOAD:'Carga',EXPENSE:'Gasto'};
+  const C={PURCHASE:'var(--blue)',SALE:'var(--green)',WRITEOFF:'var(--red)',ADJUST:'var(--muted)',LOAD:'var(--blue)',EXPENSE:'var(--amber)'};
+  const pend=new Set(cola.get().map(m=>m.id));
+  return `<div class="card"><div class="eyebrow">Movimientos · origen de verdad</div><table><tbody>
+    ${ms.map(m=>{const p=m.pid?P(m.pid):null;
+      const amt=m.type==='EXPENSE'?m.amount:m.type==='SALE'?m.units*m.unitPrice:m.units*(m.unitCost||0);
+      return `<tr><td><span style="color:${C[m.type]};font-weight:600;font-size:12px">${L[m.type]}</span>
+        ${p?' · '+esc(p.name):' · '+esc(m.cat||'')}${pend.has(m.id)?' <span class="tag bad">sin subir</span>':''}
+        <br><span class="tag">${m.date}${m.units?' · '+(m.units>0&&m.type==='ADJUST'?'+':'')+m.units+' uds':''}${m.slot?' · casilla '+m.slot:''}${m.note?' · '+esc(m.note):''}</span></td>
+        <td class="r num">${Q(amt)}</td>
+        <td class="r" style="width:30px"><button data-undo="${m.id}" style="background:none;border:0;color:var(--dim);cursor:pointer;font-size:16px">×</button></td></tr>`}).join('')}
+  </tbody></table></div>`;
+}
+
+/* ---------- eventos ---------- */
+function wire(){
+  const v=el('view');
+  v.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{tab=b.dataset.go;render()});
+  v.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>{
+    const slot=+b.dataset.slot;
+    if(maquinaMode==='fix') fixModal(b.dataset.sell,slot); else sellModal(b.dataset.sell,slot);
+  });
+  v.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>fixModal(b.dataset.fix));
+  v.querySelectorAll('[data-cargar]').forEach(b=>b.onclick=()=>cargarModal(b.dataset.cargar));
+  v.querySelectorAll('[data-mmode]').forEach(b=>b.onclick=()=>{maquinaMode=b.dataset.mmode;render()});
+  v.querySelectorAll('[data-undo]').forEach(b=>b.onclick=()=>{if(confirm('¿Deshacer este movimiento?'))undo(b.dataset.undo)});
+  v.querySelectorAll('[data-price]').forEach(i=>i.onchange=async()=>{
+    const p=P(i.dataset.price); p.price=+i.value||0; render();
+    await sb.from('products').update({price:p.price}).eq('id',p.id);
+  });
+  v.querySelectorAll('[data-cat]').forEach(s=>s.onchange=()=>setProdCat(s.dataset.cat,s.value));
+  v.querySelectorAll('[data-slots]').forEach(i=>i.onchange=()=>setProdSlots(i.dataset.slots,i.value));
+  v.querySelectorAll('[data-cren]').forEach(b=>b.onclick=()=>catRenModal(b.dataset.cren));
+  v.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=()=>catDelModal(b.dataset.cdel));
+  const nc=el('ncat'); if(nc)nc.onkeydown=e=>{if(e.key==='Enter')el('btnCat').click()};
+  const bCat=el('btnCat'); if(bCat)bCat.onclick=()=>catAdd(el('ncat').value);
+  const rp=el('rp'); if(rp)rp.onchange=()=>{const p=P(rp.value);el('rc').value=p.avgCost??''};
+  const bBuy=el('btnBuy'); if(bBuy)bBuy.onclick=async()=>{
+    const pid=el('rp').value,u=+el('ru').value,p=P(pid);
+    const c=el('rc').value===''?(p.avgCost??0):+el('rc').value;
+    if(!u||u<=0)return toast('Falta el número de unidades');
+    if(!c||c<=0)return toast('Falta el costo por unidad');
+    await purchase(pid,u,c,el('rd').value||today(),el('rn').value);
+    toast(`${u} × ${p.name} · inventario +${Q(u*c)}`);
+  };
+  const bW=el('btnW'); if(bW)bW.onclick=async()=>{
+    const pid=el('wp').value,u=+el('wu').value;
+    if(!u||u<=0)return toast('Falta el número de unidades');
+    await merma(pid,u,today(),el('wn').value); toast(`Baja de ${u} × ${P(pid).name}`);
+  };
+  const bG=el('btnG'); if(bG)bG.onclick=async()=>{
+    const a=+el('ga').value; if(!a||a<=0)return toast('Falta el monto');
+    await gasto(el('gc').value,a,el('gd').value||today(),el('gn').value); toast('Gasto registrado');
+  };
+  const bC=el('btnCnt'); if(bC)bC.onclick=applyConteo;
+  const ms=el('mSel'); if(ms)ms.onchange=()=>{plMonth=ms.value;render()};
+  const cp=el('comPct'); if(cp)cp.onchange=async()=>{
+    S.settings.commissionPct=Math.max(0,Math.min(100,+cp.value||0)); render();
+    await sb.from('settings').upsert({id:1,commission_pct:S.settings.commissionPct});
+  };
+  const bx=el('btnCsv'); if(bx)bx.onclick=exportCSV;
+}
+
+/* Corregir por CASILLA = decir dónde está físicamente lo que ya tenés: mueve entre
+   Bodega y la casilla (como Cargar), NO toca el total del producto.
+   Corregir el TOTAL GENERAL (sin casilla, desde Inventario) sí ajusta el total: es
+   para cuando el número general está mal (se perdió, se encontró, error de captura). */
+function fixModal(pid,slot){
+  const p=P(pid);
+  const bySlot=slot!=null&&!Number.isNaN(slot);
+  const cur=bySlot?(p.slotStock[slot]??0):p.stock;
+  const enMaquina=p.slots.reduce((s,sl)=>s+(p.slotStock[sl]??0),0);
+  const enBodega=Math.round((p.stock-enMaquina)*100)/100;
+  el('modal').innerHTML=`<div class="scrim"><div class="sheet">
+    <div class="eyebrow">${bySlot?`Corregir casilla ${slot}`:'Corregir total general'}</div><h2 style="font-size:20px">${esc(p.name)}</h2>
+    <p class="hint" style="margin-top:4px">El sistema dice <b>${cur}</b>. Poné las unidades reales.</p>
+    <div class="qty"><button id="fm">−</button><input class="num" id="fv" type="number" value="${cur}" min="0"><button id="fp">+</button></div>
+    ${bySlot?'':'<label>Motivo</label><input id="fn" placeholder="me equivoqué al registrar">'}
+    <div class="warn" style="margin:12px 0 0">${bySlot
+      ?`Esto <b>no</b> cambia tu total general (ahora mismo tenés ${p.stock}, de los cuales ${enBodega} están en Bodega sin casilla): solo mueve unidades entre Bodega y esta casilla. Si de verdad falta o sobra producto en el total, corregilo desde Inventario → total general.`
+      :`Esto <b>no</b> es venta ni merma: solo arregla el número general. Si el producto se venció, se robó o lo regalaste, usá <b>Merma</b> en Restock — eso sí debe pegarle a tu utilidad. Esto no toca ninguna casilla puntual — para eso, hacelo desde Máquina → Corregir.`}</div>
+    <button class="act" id="fok">Corregir</button><button class="act ghost" id="fx">Cancelar</button></div></div>`;
+  const q=el('fv');
+  el('fm').onclick=()=>q.value=Math.max(0,(+q.value||0)-1);
+  el('fp').onclick=()=>q.value=(+q.value||0)+1;
+  el('fx').onclick=closeModal;
+  el('modal').querySelector('.scrim').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
+  el('fok').onclick=async()=>{
+    const real=+q.value, d=real-cur;
+    const note=bySlot?'corrección de casilla':(el('fn').value||'corrección');
+    closeModal();
+    if(!d) return;
+    const id=bySlot ? await cargar(pid,d,today(),slot,note) : await ajuste(pid,d,today(),note);
+    toast(`${p.name}${bySlot?` (casilla ${slot})`:''}: ${cur} → ${real}`,id);
+  };
+}
+
+function sellModal(pid,slot){
+  const p=P(pid);
+  const bySlot=slot!=null&&!Number.isNaN(slot);
+  const left=bySlot?(p.slotStock[slot]??0):p.stock;
+  el('modal').innerHTML=`<div class="scrim"><div class="sheet">
+    <div class="eyebrow">Registrar venta${bySlot?` · casilla ${slot}`:''}</div><h2 style="font-size:20px">${esc(p.name)}</h2>
+    <p class="hint" style="margin-top:4px">Precio ${Q(p.price)} · costo ${p.avgCost==null?'<span class="tag bad">sin costo</span>':Q(p.avgCost)} · quedan ${left}</p>
+    <div class="qty"><button id="qm">−</button><input class="num" id="qv" type="number" value="1" min="1"><button id="qp">+</button></div>
+    <button class="act" id="qok">Vender</button><button class="act ghost" id="qx">Cancelar</button></div></div>`;
+  const q=el('qv');
+  el('qm').onclick=()=>q.value=Math.max(1,(+q.value||1)-1);
+  el('qp').onclick=()=>q.value=(+q.value||0)+1;
+  el('qx').onclick=closeModal;
+  el('modal').querySelector('.scrim').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
+  el('qok').onclick=async()=>{
+    const n=+q.value||0; if(n<=0)return; closeModal();
+    const id=await sell(pid,n,today(),'',bySlot?slot:undefined);
+    toast(`${n} × ${p.name} · ${Q(n*p.price)}`,id);
+  };
+}
+
+function cargarModal(pid){
+  const p=P(pid);
+  if(!p.slots.length) return toast('Asignale una casilla primero en Productos');
+  const enMaquina=p.slots.reduce((s,sl)=>s+(p.slotStock[sl]??0),0);
+  const enBodega=Math.round((p.stock-enMaquina)*100)/100;
+  if(enBodega<=0) return toast('No hay nada en bodega para este producto');
+  const opts=p.slots.map(s=>`<option value="${s}">Casilla ${s} (tiene ${p.slotStock[s]??0})</option>`).join('');
+  el('modal').innerHTML=`<div class="scrim"><div class="sheet">
+    <div class="eyebrow">Cargar a la máquina</div><h2 style="font-size:20px">${esc(p.name)}</h2>
+    <p class="hint" style="margin-top:4px">Tenés <b>${enBodega}</b> en bodega.</p>
+    <label>Casilla</label><select id="lgSlot">${opts}</select>
+    <div class="qty" style="margin-top:10px"><button id="lm">−</button><input class="num" id="lv" type="number" value="1" min="1" max="${enBodega}"><button id="lp">+</button></div>
+    <button class="act" id="lok">Cargar</button><button class="act ghost" id="lx">Cancelar</button></div></div>`;
+  const q=el('lv');
+  el('lm').onclick=()=>q.value=Math.max(1,(+q.value||1)-1);
+  el('lp').onclick=()=>q.value=Math.min(enBodega,(+q.value||0)+1);
+  el('lx').onclick=closeModal;
+  el('modal').querySelector('.scrim').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
+  el('lok').onclick=async()=>{
+    const n=Math.min(enBodega,Math.max(0,+q.value||0)), slot=+el('lgSlot').value; closeModal();
+    if(n<=0) return;
+    const id=await cargar(pid,n,today(),slot,'carga desde bodega');
+    toast(`${n} × ${p.name} → casilla ${slot}`,id);
+  };
+}
+
+function exportCSV(){
+  const head='fecha,tipo,producto,categoria,unidades,costo_unit,precio_unit,monto,nota';
+  const rows=S.movements.map(m=>{const p=m.pid?P(m.pid):null;
+    const amt=m.type==='EXPENSE'?m.amount:m.type==='SALE'?m.units*m.unitPrice:m.units*(m.unitCost||0);
+    return [m.date,m.type,p?p.name:'',m.cat||'',m.units||'',m.unitCost??'',m.unitPrice??'',(+amt).toFixed(2),
+      (m.note||'').replace(/,/g,';')].join(',')});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([head+'\n'+rows.join('\n')],{type:'text/csv'}));
+  a.download='vendos_libro.csv'; a.click();
+}
+
+/* ---------- arranque ---------- */
+async function boot(){
+  el('view').innerHTML='<div class="gate"><p class="hint">Cargando…</p></div>';
+  try{ await load(); }
+  catch(e){
+    el('hdr').style.display='none';
+    el('view').innerHTML=`<div class="gate"><div class="warn err"><b>No se pudo cargar.</b><br>${esc(e.message||e)}
+      <br><br>Si dice que la tabla no existe, falta correr el SQL en Supabase.</div>
+      <button class="act ghost" onclick="location.reload()">Reintentar</button></div>`;
+    return;
+  }
+  render(); flush();
+  window.addEventListener('online',flush);
+}
+boot();
+</script>
+</body>
+</html>
