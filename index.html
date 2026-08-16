@@ -505,7 +505,8 @@ async function applyConteo(){
   for(let i=1;i<=60;i++){
     const p=slots[i]; if(!p) continue;
     const v=el('cnt_'+i).value; if(v==='')continue;
-    const n=p.slotStock[i]??0, d=n-(+v); if(d!==0) acc.push([i,p.id,d]);
+    const real=Math.max(0,+v||0);
+    const n=p.slotStock[i]??0, d=n-real; if(d!==0) acc.push([i,p.id,d]);
   }
   const modo=el('cntMode').value;
   let u=0;
@@ -764,6 +765,7 @@ function wire(){
     const a=+el('ga').value; if(!a||a<=0)return toast('Falta el monto');
     await gasto(el('gc').value,a,el('gd').value||today(),el('gn').value); toast('Gasto registrado');
   };
+  v.querySelectorAll('input[id^="cnt_"]').forEach(i=>i.oninput=()=>{ if(i.value!==''&&+i.value<0) i.value='0'; });
   const bC=el('btnCnt'); if(bC)bC.onclick=applyConteo;
   const ms=el('mSel'); if(ms)ms.onchange=()=>{plMonth=ms.value;render()};
   const cp=el('comPct'); if(cp)cp.onchange=async()=>{
@@ -795,10 +797,11 @@ function fixModal(pid,slot){
   const q=el('fv');
   el('fm').onclick=()=>q.value=Math.max(0,(+q.value||0)-1);
   el('fp').onclick=()=>q.value=(+q.value||0)+1;
+  q.oninput=()=>{ if(q.value!==''&&+q.value<0) q.value='0'; };
   el('fx').onclick=closeModal;
   el('modal').querySelector('.scrim').onclick=e=>{if(e.target===e.currentTarget)closeModal()};
   el('fok').onclick=async()=>{
-    const real=+q.value, d=real-cur;
+    const real=Math.max(0,+q.value||0), d=real-cur;
     const note=bySlot?'corrección de casilla':(el('fn').value||'corrección');
     closeModal();
     if(!d) return;
